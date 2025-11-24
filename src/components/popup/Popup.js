@@ -40,6 +40,7 @@ export function Popup({ settings: { visible, content = {} }, setSettings }) {
     setSettings((prev) => ({ ...prev, visible: false }));
   }, [setSettings]);
 
+  // закрытие по esc
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === 'Escape') onClose();
@@ -51,6 +52,13 @@ export function Popup({ settings: { visible, content = {} }, setSettings }) {
 
     return () => window.removeEventListener('keydown', handleEsc);
   }, [visible, onClose]);
+
+  // закрытие по клику на подложку
+  const handleOutsideClick = (e) => {
+    if (e.currentTarget === e.currentTarget) {
+      setSettings((prev) => ({ ...prev, visible: false }));
+    }
+  };
 
   function togglePopup(e) {
     if (e.currentTarget !== e.target) {
@@ -64,7 +72,7 @@ export function Popup({ settings: { visible, content = {} }, setSettings }) {
   }
 
   return (
-    <PopupContainer visible={visible}>
+    <PopupContainer visible={visible} onClick={handleOutsideClick}>
       <StyledPopup>
         <CloseIcon onClick={togglePopup} />
 
