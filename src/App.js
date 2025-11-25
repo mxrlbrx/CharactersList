@@ -7,7 +7,6 @@ export function App() {
   return (
     <Main>
       <Header />
-
       <AppState />
 
       {!isFetching && !isError && (
