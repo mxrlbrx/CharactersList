@@ -1,18 +1,24 @@
+import { useState } from 'react';
 import styled from 'styled-components';
 import { Pagination, ItemsGrid, useData, Header, AppState } from './components';
 
 export function App() {
   const { isFetching, isError } = useData();
+  const [filters, setFilters] = useState({});
+
+  const handleFiltersChange = (newFilters) => {
+    setFilters(newFilters);
+  };
 
   return (
     <Main>
-      <Header />
+      <Header onFiltersChange={handleFiltersChange} />
 
       <AppState />
 
       {!isFetching && !isError && (
         <>
-          <ItemsGrid />
+          <ItemsGrid filters={filters} />
 
           <Pagination />
         </>

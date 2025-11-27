@@ -1,10 +1,14 @@
 import styled from 'styled-components';
 import { Logo } from './Logo';
+import { CharacterFilter } from './CharacterFilter';
 
-export function Header() {
+export function Header({ onFiltersChange }) {
   return (
     <HeaderContainer>
-      <Logo />
+      <ContentWrapper>
+        <Logo />
+        <CharacterFilter onFiltersChange={onFiltersChange} />
+      </ContentWrapper>
     </HeaderContainer>
   );
 }
@@ -14,4 +18,14 @@ const HeaderContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+`;
+
+const ContentWrapper = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 0 20px;
 `;
