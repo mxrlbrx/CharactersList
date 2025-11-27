@@ -105,7 +105,9 @@ const PopupContainer = styled.div`
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.3s, visible 0.3s;
+  transition:
+    opacity 0.3s,
+    visible 0.3s;
 
   ${({ visible }) =>
     visible &&

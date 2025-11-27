@@ -31,7 +31,9 @@ const StyledCard = styled.div`
   flex-direction: column;
   background: #263750;
   border-radius: 10px;
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition:
+    transform 0.3s,
+    box-shadow 0.3s;
 
   &:hover {
     cursor: pointer;
