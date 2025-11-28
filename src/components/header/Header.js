@@ -21,6 +21,7 @@ const HeaderContainer = styled.div`
 
   @media (max-width: 950px) {
     justify-content: center;
+    flex-direction: column;
   }
 
   @media (max-width: 530px) {

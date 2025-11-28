@@ -1,66 +1,8 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
 
-// Кастомный селект компонент
-function CustomSelect({ id, value, onChange, children, placeholder }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const wrapperRef = useRef();
-
-  const handleClickOutside = (event) => {
-    if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
-      setIsOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const options = React.Children.toArray(children).filter(
-    (child) => child.type === 'option'
-  );
-
-  const selectedOption = options.find((opt) => opt.props.value === value);
-  const displayValue = selectedOption
-    ? selectedOption.props.children
-    : placeholder;
-
-  const handleOptionClick = (optionValue) => {
-    onChange(optionValue);
-    setIsOpen(false);
-  };
-
-  return (
-    <SelectWrapper ref={wrapperRef}>
-      <SelectButton
-        type="button"
-        $isOpen={isOpen}
-        $hasValue={!!value} // Добавляем состояние наличия значения
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {displayValue}
-      </SelectButton>
-
-      {isOpen && (
-        <Dropdown>
-          {options.map((option) => (
-            <Option
-              key={option.props.value}
-              $selected={option.props.value === value}
-              onClick={() => handleOptionClick(option.props.value)}
-            >
-              {option.props.children}
-            </Option>
-          ))}
-        </Dropdown>
-      )}
-    </SelectWrapper>
-  );
-}
-
 export function CharacterFilter({ onFiltersChange }) {
+  const [isSelectOpen, setIsSelectOpen] = useState(false);
   const [filters, setFilters] = useState({
     status: '',
     gender: '',
@@ -96,47 +38,49 @@ export function CharacterFilter({ onFiltersChange }) {
   return (
     <FilterGrid>
       <FilterGroup>
-        <CustomSelect
+        <Select
           id="status"
           value={filters.status}
-          onChange={(value) => handleFilterChange('status', value)}
-          placeholder="Status"
+          onChange={(e) => handleFilterChange('status', e.target.value)}
+          onFocus={() => setIsSelectOpen(true)}
+          onBlur={() => setIsSelectOpen(false)}
+          isOpen={isSelectOpen}
         >
           <option value="">Status</option>
           <option value="alive">Alive</option>
           <option value="dead">Dead</option>
           <option value="unknown">Unknown</option>
-        </CustomSelect>
+        </Select>
       </FilterGroup>
 
       <FilterGroup>
-        <CustomSelect
+        <Select
           id="gender"
           value={filters.gender}
-          onChange={(value) => handleFilterChange('gender', value)}
-          placeholder="Gender"
+          onChange={(e) => handleFilterChange('gender', e.target.value)}
         >
+          <option value="">Gender</option>
           <option value="female">Female</option>
           <option value="male">Male</option>
           <option value="genderless">Genderless</option>
           <option value="unknown">Unknown</option>
-        </CustomSelect>
+        </Select>
       </FilterGroup>
 
       <FilterGroup>
-        <CustomSelect
+        <Select
           id="species"
           value={filters.species}
-          onChange={(value) => handleFilterChange('species', value)}
-          placeholder="Species"
+          onChange={(e) => handleFilterChange('species', e.target.value)}
         >
+          <option value="">Species</option>
           <option value="Human">Human</option>
           <option value="Alien">Alien</option>
           <option value="Humanoid">Humanoid</option>
           <option value="Robot">Robot</option>
           <option value="Animal">Animal</option>
           <option value="Mythological Creature">Mythological Creature</option>
-        </CustomSelect>
+        </Select>
       </FilterGroup>
 
       <FilterGroup>
@@ -171,107 +115,6 @@ export function CharacterFilter({ onFiltersChange }) {
   );
 }
 
-// Стили для кастомного селекта с активным состоянием
-const SelectWrapper = styled.div`
-  position: relative;
-  width: 11.25rem;
-
-  @media (max-width: 950px) {
-    width: 9.375rem;
-  }
-
-  @media (max-width: 530px) {
-    width: 15rem;
-  }
-`;
-
-const SelectButton = styled.button`
-  padding: 12px 40px 12px 16px;
-  border: 1px solid #83bf46;
-  border-radius: 8px;
-  background: #263750;
-  color: #b3b3b3;
-  font-size: 16px;
-  width: 100%;
-  height: 2.5rem;
-  font-family: 'Inter', sans-serif;
-  text-align: left;
-  cursor: pointer;
-  appearance: none;
-  transition: all 0.2s;
-
-  background-image: url(${(props) =>
-    props.$isOpen ? '/icons/arrow_up.svg' : '/icons/arrow_down.svg'});
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
-
-  /* Активное состояние когда открыт */
-  ${(props) =>
-    props.$isOpen &&
-    `
-    border-color: #83bf46;
-    box-shadow: 0 0 0 2px rgba(131, 191, 70, 0.2);
-  `}
-
-  /* Активное состояние когда есть выбранное значение */
-  ${(props) =>
-    props.$hasValue &&
-    `
-    color: #fff;
-    border-color: #83bf46;
-  `}
-
-  /* Состояние при фокусе */
-  &:focus {
-    outline: none;
-    border-color: #83bf46;
-    box-shadow: 0 0 0 2px rgba(131, 191, 70, 0.2);
-  }
-
-  /* Состояние при наведении */
-  &:hover {
-    border-color: #83bf46;
-    background-color: #2a3a54;
-  }
-`;
-
-const Dropdown = styled.div`
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: #263750;
-  border: 1px solid #83bf46;
-  border-radius: 8px;
-  z-index: 1000;
-  margin-top: 4px;
-  max-height: 200px;
-  overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-`;
-
-const Option = styled.div`
-  padding: 12px 16px;
-  background-color: #fff;
-  color: #1e1e1e;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.2s;
-
-  &:hover {
-    background-color: #e6f2da;
-    color: #1e1e1e;
-  }
-
-  ${(props) =>
-    props.$selected &&
-    `
-    background-color: #e6f2da;
-    color: #1e1e1e;
-  `}
-`;
-
 const FilterGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 180px);
@@ -295,6 +138,73 @@ const FilterGroup = styled.div`
   gap: 10px;
 `;
 
+const Label = styled.label`
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #fff;
+  font-size: 14px;
+`;
+
+const Select = styled.select`
+  padding: 12px 16px 10px;
+  border: 1px solid #83bf46;
+  border-radius: 8px;
+  background: #263750;
+  color: #b3b3b3 !important;
+  font-size: 16px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 11.25rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  appearance: none;
+  background-image: url('/icons/arrow_down.svg');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  ${(props) =>
+    props.isOpen &&
+    `
+      background-image: url('/icons/arrow_up.svg');
+    `}
+
+  @media (max-width: 950px) {
+    justify-content: flex-start;
+    width: 9.375rem;
+    height: 2.5rem;
+  }
+
+  @media (max-width: 530px) {
+    width: 15rem;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #83bf46;
+    background-image: url('/icons/arrow_up.svg');
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+  }
+
+  option {
+    background: #263750;
+    color: #b3b3b3;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #83bf46;
+    border-radius: 8px;
+
+    &:hover {
+      background: #e6f2da;
+    }
+  }
+`;
+
 const Input = styled.input`
   padding: 12px 16px 12px;
   border: 1px solid #83bf46;
@@ -313,6 +223,7 @@ const Input = styled.input`
   font-family: 'Inter', sans-serif;
 
   @media (max-width: 950px) {
+    grid-column: span 2;
     justify-content: flex-start;
     width: 9.375rem;
     height: 2.5rem;
