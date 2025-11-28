@@ -35,109 +35,92 @@ export function CharacterFilter({ onFiltersChange }) {
   }, [onFiltersChange]);
 
   return (
-    <FilterContainer>
-      <FilterGrid>
-        <FilterGroup>
-          <Label htmlFor="status">Status</Label>
-          <Select
-            id="status"
-            value={filters.status}
-            onChange={(e) => handleFilterChange('status', e.target.value)}
-          >
-            <option value="">All</option>
-            <option value="alive">Alive</option>
-            <option value="dead">Dead</option>
-            <option value="unknown">Unknown</option>
-          </Select>
-        </FilterGroup>
+    <FilterGrid>
+      <FilterGroup>
+        <Select
+          id="status"
+          value={filters.status}
+          onChange={(e) => handleFilterChange('status', e.target.value)}
+        >
+          <option value="">Status</option>
+          <option value="alive">Alive</option>
+          <option value="dead">Dead</option>
+          <option value="unknown">Unknown</option>
+        </Select>
+      </FilterGroup>
 
-        <FilterGroup>
-          <Label htmlFor="gender">Gender</Label>
-          <Select
-            id="gender"
-            value={filters.gender}
-            onChange={(e) => handleFilterChange('gender', e.target.value)}
-          >
-            <option value="">All</option>
-            <option value="female">Female</option>
-            <option value="male">Male</option>
-            <option value="genderless">Genderless</option>
-            <option value="unknown">Unknown</option>
-          </Select>
-        </FilterGroup>
+      <FilterGroup>
+        <Select
+          id="gender"
+          value={filters.gender}
+          onChange={(e) => handleFilterChange('gender', e.target.value)}
+        >
+          <option value="">Gender</option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+          <option value="genderless">Genderless</option>
+          <option value="unknown">Unknown</option>
+        </Select>
+      </FilterGroup>
 
-        <FilterGroup>
-          <Label htmlFor="species">Species</Label>
-          <Select
-            id="species"
-            value={filters.species}
-            onChange={(e) => handleFilterChange('species', e.target.value)}
-          >
-            <option value="">All</option>
-            <option value="Human">Human</option>
-            <option value="Alien">Alien</option>
-            <option value="Humanoid">Humanoid</option>
-            <option value="Robot">Robot</option>
-            <option value="Animal">Animal</option>
-            <option value="Mythological Creature">Mythological Creature</option>
-          </Select>
-        </FilterGroup>
+      <FilterGroup>
+        <Select
+          id="species"
+          value={filters.species}
+          onChange={(e) => handleFilterChange('species', e.target.value)}
+        >
+          <option value="">Species</option>
+          <option value="Human">Human</option>
+          <option value="Alien">Alien</option>
+          <option value="Humanoid">Humanoid</option>
+          <option value="Robot">Robot</option>
+          <option value="Animal">Animal</option>
+          <option value="Mythological Creature">Mythological Creature</option>
+        </Select>
+      </FilterGroup>
 
-        <FilterGroup>
-          <Label htmlFor="name">Name</Label>
-          <Input
-            id="name"
-            type="text"
-            placeholder="Enter character name"
-            value={filters.name}
-            onChange={(e) => handleFilterChange('name', e.target.value)}
-          />
-        </FilterGroup>
+      <FilterGroup>
+        <Input
+          id="name"
+          type="text"
+          placeholder="Name"
+          value={filters.name}
+          onChange={(e) => handleFilterChange('name', e.target.value)}
+        />
+      </FilterGroup>
 
-        <FilterGroup>
-          <Label htmlFor="type">Type</Label>
-          <Input
-            id="type"
-            type="text"
-            placeholder="Enter character type"
-            value={filters.type}
-            onChange={(e) => handleFilterChange('type', e.target.value)}
-          />
-        </FilterGroup>
+      <FilterGroup>
+        <Input
+          id="type"
+          type="text"
+          placeholder="Type"
+          value={filters.type}
+          onChange={(e) => handleFilterChange('type', e.target.value)}
+        />
+      </FilterGroup>
 
-        {/* Кнопки размещаем в той же сетке после поля type */}
+      <FilterGroup>
         <ButtonGroup>
           <ApplyButton onClick={() => onFiltersChange(filters)}>
             Apply
           </ApplyButton>
           <ResetButton onClick={handleReset}>Reset</ResetButton>
         </ButtonGroup>
-      </FilterGrid>
-    </FilterContainer>
+      </FilterGroup>
+    </FilterGrid>
   );
 }
 
-const FilterContainer = styled.div`
-  background: #263750;
-  padding: 20px;
-  border-radius: 8px;
-  margin: 20px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 1200px;
-  border: 1px solid #83bf46;
-`;
-
 const FilterGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 0;
+  grid-template-columns: repeat(3, 180px);
+  gap: 10px;
 `;
 
 const FilterGroup = styled.div`
   display: flex;
   flex-direction: column;
+  gap: 10px;
 `;
 
 const Label = styled.label`
@@ -148,20 +131,17 @@ const Label = styled.label`
 `;
 
 const Select = styled.select`
-  padding: 8px 12px;
+  padding: 12px 16px 12px;
   border: 1px solid #83bf46;
-  border-radius: 4px;
+  border-radius: 8px;
   background: #263750;
   color: #fff;
-  font-size: 14px;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'><path fill='%2383BF46' d='M2 0L0 2h4zm0 5L0 3h4z'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 8px 10px;
+  font-size: 16px;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
+  width: 11.25rem;
+  height: 2.5rem;
 
   &:focus {
     outline: none;
@@ -179,15 +159,17 @@ const Select = styled.select`
 `;
 
 const Input = styled.input`
-  padding: 8px 12px;
+  padding: 12px 16px 12px;
   border: 1px solid #83bf46;
   border-radius: 4px;
   background: #263750;
   color: #fff;
-  font-size: 14px;
+  font-size: 16px;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
+  width: 11.25rem;
+  height: 2.5rem;
 
   &:focus {
     outline: none;
@@ -214,12 +196,12 @@ const ButtonGroup = styled.div`
 
 const Button = styled.button`
   padding: 10px 20px;
-  border: 2px solid;
-  border-radius: 4px;
+  border: 1px solid;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: regular;
   transition: all 0.2s;
-  font-size: 14px;
+  font-size: 16px;
   background: transparent;
 `;
 
