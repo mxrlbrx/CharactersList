@@ -1,65 +1,86 @@
 import styled from 'styled-components';
-import { useEffect, useState } from 'react';
 import { useData } from './providers';
 
 export function Pagination() {
-  const [pages, setPages] = useState([]);
-  const { apiURL, info, activePage, setActivePage, setApiURL } = useData();
+  const { currentPage, totalPages, changePage, isFetching } = useData();
 
-  const pageClickHandler = (index) => {
+  const handlePageChange = (newPage) => {
+    if (isFetching || newPage < 1 || newPage > totalPages) return;
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setActivePage(index);
-    setApiURL(pages[index]);
+    changePage(newPage);
   };
 
-  useEffect(() => {
-    const createdPages = Array.from({ length: info.pages }, (_, i) => {
-      const URLWithPage = new URL(apiURL);
+  if (totalPages <= 1) return null;
 
-      URLWithPage.searchParams.set('page', i + 1);
+  // Определяем видимый диапазон страниц
+  const getVisiblePages = () => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
 
-      return URLWithPage;
-    });
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, 5, '...', totalPages];
+    }
 
-    // добавил необходимую зависимость apiURL
-    setPages(createdPages);
-  }, [info, apiURL]);
+    if (currentPage >= totalPages - 2) {
+      return [
+        1,
+        '...',
+        totalPages - 4,
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages
+      ];
+    }
 
-  if (pages.length <= 1) return null;
+    return [
+      1,
+      '...',
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+      '...',
+      totalPages
+    ];
+  };
+
+  const visiblePages = getVisiblePages();
 
   return (
     <StyledPagination>
-      {pages[activePage - 1] && (
-        <>
-          {activePage - 1 !== 0 && (
-            <>
-              <Page onClick={() => pageClickHandler(0)}>« First</Page>
-              <Ellipsis>...</Ellipsis>
-            </>
-          )}
+      {/* Кнопка "Назад" */}
+      <Page
+        onClick={() => handlePageChange(currentPage - 1)}
+        disabled={currentPage === 1 || isFetching}
+      >
+        ‹
+      </Page>
 
-          <Page onClick={() => pageClickHandler(activePage - 1)}>
-            {activePage}
+      {/* Номера страниц */}
+      {visiblePages.map((page, index) =>
+        page === '...' ? (
+          <Ellipsis key={`ellipsis-${index}`}>...</Ellipsis>
+        ) : (
+          <Page
+            key={page}
+            active={page === currentPage}
+            onClick={() => handlePageChange(page)}
+            disabled={isFetching}
+          >
+            {page}
           </Page>
-        </>
+        )
       )}
 
-      <Page active>{activePage + 1}</Page>
-
-      {pages[activePage + 1] && (
-        <>
-          <Page onClick={() => pageClickHandler(activePage + 1)}>
-            {activePage + 2}
-          </Page>
-
-          {activePage + 1 !== pages.length - 1 && (
-            <>
-              <Ellipsis>...</Ellipsis>
-              <Page onClick={() => pageClickHandler(pages.length)}>Last »</Page>
-            </>
-          )}
-        </>
-      )}
+      {/* Кнопка "Вперед" */}
+      <Page
+        onClick={() => handlePageChange(currentPage + 1)}
+        disabled={currentPage === totalPages || isFetching}
+      >
+        ›
+      </Page>
     </StyledPagination>
   );
 }
@@ -76,18 +97,11 @@ const Page = styled.span`
   cursor: pointer;
   transition: color 0.2s;
   ${({ active }) => active && 'color: #83bf46'};
+  ${({ disabled }) => disabled && 'opacity: 0.3; cursor: not-allowed;'};
 
-  &:hover {
+  &:hover:not([disabled]) {
     color: #83bf46;
   }
-`;
-
-const Container = styled.div`
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  justify-items: center;
-  gap: 30px;
 `;
 
 const Ellipsis = styled(Page)`

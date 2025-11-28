@@ -10,44 +10,18 @@ const defaultPopupSettings = {
 };
 
 export function ItemsGrid({ filters = {} }) {
-  const { characters } = useData();
+  const { characters, applyFilters, currentFilters } = useData();
   const [popupSettings, setPopupSettings] = useState(defaultPopupSettings);
-  const [filteredCharacters, setFilteredCharacters] = useState([]);
 
-  // Применение фильтров при изменении characters или filters
+  // Применяем фильтры при их изменении
   useEffect(() => {
-    let filtered = characters;
+    const filtersChanged =
+      JSON.stringify(filters) !== JSON.stringify(currentFilters);
 
-    if (filters.status) {
-      filtered = filtered.filter(
-        (char) => char.status.toLowerCase() === filters.status.toLowerCase()
-      );
+    if (filtersChanged) {
+      applyFilters(filters);
     }
-
-    if (filters.gender) {
-      filtered = filtered.filter(
-        (char) => char.gender.toLowerCase() === filters.gender.toLowerCase()
-      );
-    }
-
-    if (filters.species) {
-      filtered = filtered.filter((char) => char.species === filters.species);
-    }
-
-    if (filters.name) {
-      filtered = filtered.filter((char) =>
-        char.name.toLowerCase().includes(filters.name.toLowerCase())
-      );
-    }
-
-    if (filters.type) {
-      filtered = filtered.filter((char) =>
-        char.type.toLowerCase().includes(filters.type.toLowerCase())
-      );
-    }
-
-    setFilteredCharacters(filtered);
-  }, [characters, filters]);
+  }, [filters, applyFilters, currentFilters]);
 
   function cardOnClickHandler(props) {
     setPopupSettings({
@@ -57,25 +31,23 @@ export function ItemsGrid({ filters = {} }) {
   }
 
   if (!characters.length) {
-    return null;
+    return <EmptyMessage>No characters found</EmptyMessage>;
   }
 
-  const displayCharacters = Object.keys(filters).some((key) => filters[key])
-    ? filteredCharacters
-    : characters;
-
   return (
-    <Container>
-      {displayCharacters.map((props, index) => (
-        <Card
-          key={index}
-          onClickHandler={() => cardOnClickHandler(props)}
-          {...props}
-        />
-      ))}
+    <>
+      <Container>
+        {characters.map((props, index) => (
+          <Card
+            key={`${props.id}-${index}`}
+            onClickHandler={() => cardOnClickHandler(props)}
+            {...props}
+          />
+        ))}
+      </Container>
 
       <Popup settings={popupSettings} setSettings={setPopupSettings} />
-    </Container>
+    </>
   );
 }
 
@@ -85,4 +57,11 @@ const Container = styled.div`
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   justify-items: center;
   gap: 30px;
+`;
+
+const EmptyMessage = styled.div`
+  text-align: center;
+  color: #666;
+  font-size: 18px;
+  padding: 40px;
 `;

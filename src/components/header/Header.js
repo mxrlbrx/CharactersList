@@ -15,7 +15,7 @@ export function Header({ onFiltersChange }) {
 
 const HeaderContainer = styled.div`
   width: 100%;
-  display: flex;
+
   justify-content: center;
   align-items: center;
 `;
@@ -24,7 +24,6 @@ const ContentWrapper = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 20px;
   padding: 0 20px;

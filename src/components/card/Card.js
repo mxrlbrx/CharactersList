@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import { CardTitle } from './CardTitle';
 import { CardStatus } from './CardStatus';
+import { useState } from 'react';
 
 export function Card({
   status,
@@ -11,13 +12,37 @@ export function Card({
   image,
   onClickHandler
 }) {
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+
+  const handleImageError = () => {
+    setImageError(true);
+    setImageLoading(false);
+  };
+
+  const handleImageLoad = () => {
+    setImageLoading(false);
+  };
+
   return (
     <StyledCard onClick={onClickHandler}>
-      <CardImg src={image} alt={name} />
+      <ImageContainer>
+        {imageLoading && <ImagePlaceholder>Loading...</ImagePlaceholder>}
+        {!imageError ? (
+          <CardImg
+            src={image}
+            alt={name}
+            onError={handleImageError}
+            onLoad={handleImageLoad}
+            style={{ display: imageLoading ? 'none' : 'block' }}
+          />
+        ) : (
+          <ImagePlaceholder>No Image</ImagePlaceholder>
+        )}
+      </ImageContainer>
 
       <CardInfo>
         <CardTitle name={name} gender={gender} />
-
         <CardStatus status={status} species={species} type={type} />
       </CardInfo>
     </StyledCard>
@@ -31,9 +56,7 @@ const StyledCard = styled.div`
   flex-direction: column;
   background: #263750;
   border-radius: 10px;
-  transition:
-    transform 0.3s,
-    box-shadow 0.3s;
+  transition: transform 0.3s, box-shadow 0.3s;
 
   &:hover {
     cursor: pointer;
@@ -46,8 +69,30 @@ const StyledCard = styled.div`
   }
 `;
 
-const CardImg = styled.img`
+const ImageContainer = styled.div`
+  position: relative;
+  width: 100%;
+  height: 200px;
   border-radius: 10px 10px 0 0;
+  overflow: hidden;
+  background: #1a2838;
+`;
+
+const CardImg = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const ImagePlaceholder = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a2838;
+  color: #666;
+  font-size: 14px;
 `;
 
 const CardInfo = styled.div`

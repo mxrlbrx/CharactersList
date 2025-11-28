@@ -19,7 +19,6 @@ export function App() {
       {!isFetching && !isError && (
         <>
           <ItemsGrid filters={filters} />
-
           <Pagination />
         </>
       )}

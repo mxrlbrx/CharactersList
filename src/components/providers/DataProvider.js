@@ -11,46 +11,96 @@ import {
 const API_URL = 'https://rickandmortyapi.com/api/character/';
 
 export function DataProvider({ children }) {
-  const [activePage, setActivePage] = useState(0);
   const [characters, setCharacters] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
   const [isError, setIsError] = useState(false);
   const [info, setInfo] = useState({});
-  const [apiURL, setApiURL] = useState(API_URL);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [currentFilters, setCurrentFilters] = useState({});
 
-  const fetchData = useCallback(async (url) => {
+  const fetchCharacters = useCallback(async (page = 1, filters = {}) => {
+    console.log('Fetching page:', page, 'with filters:', filters);
+
     setIsFetching(true);
     setIsError(false);
 
     try {
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page.toString());
+
+      // Добавляем фильтры
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) {
+          queryParams.append(key, value);
+        }
+      });
+
+      const url = `${API_URL}?${queryParams.toString()}`;
+      console.log('Fetching URL:', url);
+
       const { data } = await axios.get(url);
-      setIsFetching(false);
-      setCharacters(data.results);
-      setInfo(data.info);
+
+      setCharacters(data.results || []);
+      setInfo(data.info || {});
+      setCurrentPage(page);
+      setCurrentFilters(filters);
+
+      console.log('Successfully fetched:', data.results?.length, 'characters');
+      console.log('Total pages:', data.info?.pages);
     } catch (e) {
-      setIsFetching(false);
+      console.error('Fetch error:', e);
       setIsError(true);
-      console.error(e);
+      setCharacters([]);
+    } finally {
+      setIsFetching(false);
     }
   }, []);
 
+  // Загружаем первую страницу при монтировании
   useEffect(() => {
-    fetchData(apiURL);
-  }, [fetchData, apiURL]);
+    fetchCharacters(1);
+  }, [fetchCharacters]);
+
+  const changePage = useCallback(
+    (newPage) => {
+      console.log('Changing page to:', newPage);
+      fetchCharacters(newPage, currentFilters);
+    },
+    [fetchCharacters, currentFilters]
+  );
+
+  const applyFilters = useCallback(
+    (filters) => {
+      console.log('Applying filters:', filters);
+      fetchCharacters(1, filters); // Всегда начинаем с первой страницы при фильтрации
+    },
+    [fetchCharacters]
+  );
 
   const dataValue = useMemo(
     () => ({
-      activePage,
-      setActivePage,
-      apiURL,
-      setApiURL,
       characters,
-      fetchData,
       isFetching,
       isError,
-      info
+      info,
+      currentPage,
+      totalPages: info.pages || 1,
+      currentFilters,
+      fetchCharacters,
+      changePage,
+      applyFilters
     }),
-    [activePage, apiURL, characters, isFetching, isError, info, fetchData]
+    [
+      characters,
+      isFetching,
+      isError,
+      info,
+      currentPage,
+      currentFilters,
+      fetchCharacters,
+      changePage,
+      applyFilters
+    ]
   );
 
   return (
