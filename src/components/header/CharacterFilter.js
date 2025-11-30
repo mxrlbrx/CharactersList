@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 
-// Кастомный селект компонент
 function CustomSelect({ id, value, onChange, children, placeholder }) {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef();
@@ -32,15 +31,34 @@ function CustomSelect({ id, value, onChange, children, placeholder }) {
     setIsOpen(false);
   };
 
+  const handleClearClick = (e) => {
+    e.stopPropagation();
+    onChange('');
+  };
+
+  const handleButtonClick = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
     <SelectWrapper ref={wrapperRef}>
       <SelectButton
         type="button"
         $isOpen={isOpen}
-        $hasValue={!!value} // Добавляем состояние наличия значения
-        onClick={() => setIsOpen(!isOpen)}
+        $hasValue={!!value}
+        onClick={handleButtonClick}
       >
         {displayValue}
+
+        {value && (
+          <ClearButton
+            type="button"
+            onClick={handleClearClick}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <ClearIcon />
+          </ClearButton>
+        )}
       </SelectButton>
 
       {isOpen && (
@@ -61,7 +79,7 @@ function CustomSelect({ id, value, onChange, children, placeholder }) {
 }
 
 export function CharacterFilter({ onFiltersChange }) {
-  const [filters, setFilters] = useState({
+  const [tempFilters, setTempFilters] = useState({
     status: '',
     gender: '',
     species: '',
@@ -69,17 +87,19 @@ export function CharacterFilter({ onFiltersChange }) {
     type: ''
   });
 
-  const handleFilterChange = useCallback(
-    (filterName, value) => {
-      const newFilters = {
-        ...filters,
-        [filterName]: value
-      };
-      setFilters(newFilters);
-      onFiltersChange(newFilters);
-    },
-    [filters, onFiltersChange]
-  );
+  const [activeFilters, setActiveFilters] = useState({});
+
+  const handleTempFilterChange = useCallback((filterName, value) => {
+    setTempFilters((prev) => ({
+      ...prev,
+      [filterName]: value
+    }));
+  }, []);
+
+  const handleApply = useCallback(() => {
+    setActiveFilters(tempFilters);
+    onFiltersChange(tempFilters);
+  }, [tempFilters, onFiltersChange]);
 
   const handleReset = useCallback(() => {
     const resetFilters = {
@@ -89,7 +109,8 @@ export function CharacterFilter({ onFiltersChange }) {
       name: '',
       type: ''
     };
-    setFilters(resetFilters);
+    setTempFilters(resetFilters);
+    setActiveFilters(resetFilters);
     onFiltersChange(resetFilters);
   }, [onFiltersChange]);
 
@@ -98,11 +119,10 @@ export function CharacterFilter({ onFiltersChange }) {
       <FilterGroup>
         <CustomSelect
           id="status"
-          value={filters.status}
-          onChange={(value) => handleFilterChange('status', value)}
+          value={tempFilters.status}
+          onChange={(value) => handleTempFilterChange('status', value)}
           placeholder="Status"
         >
-          <option value="">Status</option>
           <option value="alive">Alive</option>
           <option value="dead">Dead</option>
           <option value="unknown">Unknown</option>
@@ -112,8 +132,8 @@ export function CharacterFilter({ onFiltersChange }) {
       <FilterGroup>
         <CustomSelect
           id="gender"
-          value={filters.gender}
-          onChange={(value) => handleFilterChange('gender', value)}
+          value={tempFilters.gender}
+          onChange={(value) => handleTempFilterChange('gender', value)}
           placeholder="Gender"
         >
           <option value="female">Female</option>
@@ -126,8 +146,8 @@ export function CharacterFilter({ onFiltersChange }) {
       <FilterGroup>
         <CustomSelect
           id="species"
-          value={filters.species}
-          onChange={(value) => handleFilterChange('species', value)}
+          value={tempFilters.species}
+          onChange={(value) => handleTempFilterChange('species', value)}
           placeholder="Species"
         >
           <option value="Human">Human</option>
@@ -144,8 +164,8 @@ export function CharacterFilter({ onFiltersChange }) {
           id="name"
           type="text"
           placeholder="Name"
-          value={filters.name}
-          onChange={(e) => handleFilterChange('name', e.target.value)}
+          value={tempFilters.name}
+          onChange={(e) => handleTempFilterChange('name', e.target.value)}
         />
       </FilterGroup>
 
@@ -154,16 +174,14 @@ export function CharacterFilter({ onFiltersChange }) {
           id="type"
           type="text"
           placeholder="Type"
-          value={filters.type}
-          onChange={(e) => handleFilterChange('type', e.target.value)}
+          value={tempFilters.type}
+          onChange={(e) => handleTempFilterChange('type', e.target.value)}
         />
       </FilterGroup>
 
       <FilterGroup>
         <ButtonGroup>
-          <ApplyButton onClick={() => onFiltersChange(filters)}>
-            Apply
-          </ApplyButton>
+          <ApplyButton onClick={handleApply}>Apply</ApplyButton>
           <ResetButton onClick={handleReset}>Reset</ResetButton>
         </ButtonGroup>
       </FilterGroup>
@@ -171,7 +189,7 @@ export function CharacterFilter({ onFiltersChange }) {
   );
 }
 
-// Стили для кастомного селекта с активным состоянием
+// Все стили остаются без изменений...
 const SelectWrapper = styled.div`
   position: relative;
   width: 11.25rem;
@@ -199,14 +217,21 @@ const SelectButton = styled.button`
   cursor: pointer;
   appearance: none;
   transition: all 0.2s;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-  background-image: url(${(props) =>
-    props.$isOpen ? '/icons/arrow_up.svg' : '/icons/arrow_down.svg'});
+  background-image: ${(props) =>
+    props.$hasValue
+      ? 'none'
+      : props.$isOpen
+      ? "url('/icons/arrow_up.svg')"
+      : "url('/icons/arrow_down.svg')"};
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 16px;
 
-  /* Активное состояние когда открыт */
   ${(props) =>
     props.$isOpen &&
     `
@@ -214,25 +239,75 @@ const SelectButton = styled.button`
     box-shadow: 0 0 0 2px rgba(131, 191, 70, 0.2);
   `}
 
-  /* Активное состояние когда есть выбранное значение */
   ${(props) =>
     props.$hasValue &&
     `
     color: #fff;
     border-color: #83bf46;
+    padding-right: 40px;
   `}
 
-  /* Состояние при фокусе */
   &:focus {
     outline: none;
     border-color: #83bf46;
     box-shadow: 0 0 0 2px rgba(131, 191, 70, 0.2);
   }
 
-  /* Состояние при наведении */
   &:hover {
     border-color: #83bf46;
     background-color: #2a3a54;
+  }
+`;
+
+const ClearButton = styled.button`
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #b3b3b3;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #83bf46;
+  }
+
+  &:focus {
+    outline: none;
+  }
+`;
+
+const ClearIcon = styled.div`
+  width: 16px;
+  height: 16px;
+  position: relative;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 1px;
+  }
+
+  &::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  &::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
   }
 `;
 
@@ -258,6 +333,7 @@ const Option = styled.div`
   cursor: pointer;
   font-size: 16px;
   transition: all 0.2s;
+  font-weight: ${(props) => (props.$selected ? 'bold' : 'normal')};
 
   &:hover {
     background-color: #e6f2da;
@@ -267,8 +343,8 @@ const Option = styled.div`
   ${(props) =>
     props.$selected &&
     `
-    background-color: #e6f2da;
     color: #1e1e1e;
+    font-weight: bold;
   `}
 `;
 

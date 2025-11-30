@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import { CardTitle } from './CardTitle';
 import { CardStatus } from './CardStatus';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export function Card({
   status,
@@ -10,34 +10,112 @@ export function Card({
   type,
   gender,
   image,
-  onClickHandler
+  onClickHandler,
+  onImageError,
+  hasImageFailed,
+  retryTrigger
 }) {
-  const [imageError, setImageError] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(hasImageFailed || false);
+  const [imageLoading, setImageLoading] = useState(!hasImageFailed);
+  const [retryCount, setRetryCount] = useState(0);
+  const [isInView, setIsInView] = useState(false);
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin: '100px',
+        threshold: 0.1
+      }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (retryTrigger > 0) {
+      setImageError(false);
+      setImageLoading(true);
+      setRetryCount(0);
+    }
+  }, [retryTrigger]);
+
+  useEffect(() => {
+    if (hasImageFailed) {
+      setImageError(true);
+      setImageLoading(false);
+    }
+  }, [hasImageFailed]);
 
   const handleImageError = () => {
-    setImageError(true);
-    setImageLoading(false);
+    if (retryCount < 3) {
+      // автоматическая повторная попытка загрузки
+      setTimeout(() => {
+        setRetryCount((prev) => prev + 1);
+        setImageError(false);
+        setImageLoading(true);
+      }, 1000 * retryCount);
+    } else {
+      setImageError(true);
+      setImageLoading(false);
+      onImageError?.();
+    }
   };
 
   const handleImageLoad = () => {
     setImageLoading(false);
+    setImageError(false);
+  };
+
+  // принудительная перезагрузка изображения
+  const retryLoadImage = (e) => {
+    e.stopPropagation();
+    setRetryCount(0);
+    setImageError(false);
+    setImageLoading(true);
   };
 
   return (
-    <StyledCard onClick={onClickHandler}>
+    <StyledCard onClick={onClickHandler} ref={cardRef}>
       <ImageContainer>
-        {imageLoading && <ImagePlaceholder>Loading...</ImagePlaceholder>}
-        {!imageError ? (
+        {imageLoading && (
+          <ImagePlaceholder>
+            <LoadingSpinner>⟳</LoadingSpinner>
+            Loading...
+          </ImagePlaceholder>
+        )}
+
+        {!imageError && isInView ? (
           <CardImg
-            src={image}
+            src={retryCount > 0 ? `${image}?retry=${retryCount}` : image}
             alt={name}
             onError={handleImageError}
             onLoad={handleImageLoad}
             style={{ display: imageLoading ? 'none' : 'block' }}
+            loading="lazy"
           />
+        ) : imageError ? (
+          <ImagePlaceholder>
+            <div>No Image</div>
+            <RetryButton onClick={retryLoadImage}>Try Again</RetryButton>
+          </ImagePlaceholder>
         ) : (
-          <ImagePlaceholder>No Image</ImagePlaceholder>
+          <ImagePlaceholder>
+            <LoadingSpinner>⟳</LoadingSpinner>
+            Loading...
+          </ImagePlaceholder>
         )}
       </ImageContainer>
 
@@ -57,6 +135,7 @@ const StyledCard = styled.div`
   background: #263750;
   border-radius: 10px;
   transition: transform 0.3s, box-shadow 0.3s;
+  overflow: hidden;
 
   &:hover {
     cursor: pointer;
@@ -82,17 +161,48 @@ const CardImg = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: opacity 0.3s;
 `;
 
 const ImagePlaceholder = styled.div`
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   background: #1a2838;
   color: #666;
   font-size: 14px;
+  gap: 10px;
+`;
+
+const LoadingSpinner = styled.div`
+  font-size: 20px;
+  animation: spin 1s linear infinite;
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
+const RetryButton = styled.button`
+  background: #83bf46;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+
+  &:hover {
+    background: #72a83d;
+  }
 `;
 
 const CardInfo = styled.div`

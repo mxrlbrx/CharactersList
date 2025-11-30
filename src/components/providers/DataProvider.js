@@ -28,7 +28,6 @@ export function DataProvider({ children }) {
       const queryParams = new URLSearchParams();
       queryParams.append('page', page.toString());
 
-      // Добавляем фильтры
       Object.entries(filters).forEach(([key, value]) => {
         if (value) {
           queryParams.append(key, value);
@@ -56,7 +55,6 @@ export function DataProvider({ children }) {
     }
   }, []);
 
-  // Загружаем первую страницу при монтировании
   useEffect(() => {
     fetchCharacters(1);
   }, [fetchCharacters]);
@@ -72,7 +70,7 @@ export function DataProvider({ children }) {
   const applyFilters = useCallback(
     (filters) => {
       console.log('Applying filters:', filters);
-      fetchCharacters(1, filters); // Всегда начинаем с первой страницы при фильтрации
+      fetchCharacters(1, filters); // всегда начинаем с первой страницы при фильтрации
     },
     [fetchCharacters]
   );

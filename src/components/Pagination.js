@@ -13,7 +13,6 @@ export function Pagination() {
 
   if (totalPages <= 1) return null;
 
-  // Определяем видимый диапазон страниц
   const getVisiblePages = () => {
     if (totalPages <= 7) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -50,7 +49,6 @@ export function Pagination() {
 
   return (
     <StyledPagination>
-      {/* Кнопка "Назад" */}
       <Page
         onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage === 1 || isFetching}
@@ -58,7 +56,6 @@ export function Pagination() {
         ‹
       </Page>
 
-      {/* Номера страниц */}
       {visiblePages.map((page, index) =>
         page === '...' ? (
           <Ellipsis key={`ellipsis-${index}`}>...</Ellipsis>
@@ -74,7 +71,6 @@ export function Pagination() {
         )
       )}
 
-      {/* Кнопка "Вперед" */}
       <Page
         onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage === totalPages || isFetching}

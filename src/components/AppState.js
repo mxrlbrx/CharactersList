@@ -8,7 +8,7 @@ export function AppState() {
   if (isError) {
     return (
       <AppStateContainer>
-        <Text>An error has occurred. Try other search parameters.</Text>
+        <Text>Characters not found</Text>
       </AppStateContainer>
     );
   }
